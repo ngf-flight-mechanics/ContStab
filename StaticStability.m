@@ -7,12 +7,12 @@ clear
 clc
 
 %% Aircraft geometric properties, values, and constants.
-L_f = 19 ;      % Fuselage length(m)
-w_f = 3.5 ;     % Fuselage max width(m)
-S_w = 50 ;      % Wing area(m^2)
-cbar = 5.2 ;    % Mean aerodynamic chord(m)
-AR =  ;         % Aspect ratio
-LAMBDA_14 =  ;  % Sweep at quater chord (deg)
+L_f = 20 ;      % Fuselage length(m)
+w_f = ??? ;     % Fuselage max width(m)
+S_w = 59.65792 ;      % Wing area(m^2)
+cbar = ??? ;    % Mean aerodynamic chord(m)
+AR = 2.5 ;         % Aspect ratio
+LAMBD_14 =  ;  % Sweep at quater chord (deg)
 lambda =  ;     % Taper ratio
 h_h =  ;        % Height of horizontal stabalizer ABOVE the wing(m)
 l_h =  ;        % Length of horizontal stabalizer BEHIND the wing(m)
@@ -41,6 +41,14 @@ K_lambda = (10 - 3 * lambda) / 7 ;
 K_h = (1 - abs(h_h/b)) / ((2 * l_h / b)^(1/3)) ;
 
 depsdalf = 4.44 * ((K_A * K_lambda * K_h * ((cosd(LAMBDA_14))^(1/2)))^(1.19)) * (a_w / a_w_0) ;
+
+% Aerodynamic centre estimation
+if M >= 1.1
+    dx_ac = 0.112 - 0.004 * M ;          % Supersonic x_ac
+elseif M < 11 && M > 0.4
+    dx_ac = 0.26 * power(M - 0.4, 2.5) ; % Subsonic x_ac
+    
+x_ac = x_c4 + dx_ac * sqrt(S_w) ;
 
 % Bringing everything together:
 dCmcgdalf = -a_w * ((x_ac_w - x_cg)/cbar) + C_Mf ...                                           % Contribution of main wing
@@ -119,6 +127,50 @@ for ii = 0 : 9
 end
 
 %% Lateral stability
+
+
+C_n_beta_w = C_L^2 * ((1 / (4 * pi * AR)) - ...
+    (tand(LAMBDA_14) / (pi * AR * (AR + 4 * cosd(LAMBDA_14)))) * ...
+    (cosd(LAMBDA_14) - (AR / 2) - (AR^2 / (8 * cosd(LAMBDA_14))) + ...
+    (6 * (x_ac_w - x_cg) * sind(LAMBDA_14) / (AR * cbar)))) ;
+
+
+C_n_beta_fus = -1.3 * volume * (D_f / W_f) / (S_w * b) ;
+
+BvBetav = 0.724 + ((3.06 * (S_vs / S_w)) / (1 + cosd(LAMBDA_14))) - ...
+    0.4 * (Z_wf / D_f) + (0.009 * AR) ; 
+
+C_n_beta_v = C_F_beta_v * BvBetav * (S_v / S_w) * (x_ac_v - x_cg) / cbar ;
+
+
+ClbetawCL =  ;
+
+C_l_beta_gam = (-a * gam / 4) * ((2 * (1 + 2*lambda)) / (3 * (1 + lambda))) ;
+
+C_beta_wf = -1.2 * ((sqrt(AR) * Z_wf * (D_f + W_f)) / (b^2)) ;
+
+C_l_beta_w = ClbetawCL * C_L + C_l_beta_gam + C_l_beta_wf ;
+
+C_l_beta_v = -C_F_beta_v * BvBetav * (S_v / S_w) * Z_v / cbar ;
+
+
+C_n_beta = C_n_beta_w + C_n_beta_fus + C_n_beta_v ;
+
+C_l_beta = C_l_beta_w + C_l_beta_v ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
